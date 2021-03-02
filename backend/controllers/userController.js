@@ -96,6 +96,64 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     }
 })
 
+// userProfile routes, also require auth to access and only admin can access it
+const getAllUsers = asyncHandler(async (req, res) => {
+    const user = await userModel.find({})
+    if (user) {
+        res.json(user)
+    } else {
+        res.status(404)
+        throw new Error('No user found')
+    }
+})
 
+// Let delete user based on id
+const deleteUser = asyncHandler(async (req, res) => {
+    const user = await userModel.findById(req.params.id)
+    if (user) {
+        await user.remove()
+        res.json({message: 'User removed'})
+    } else {
+        res.status(404)
+        throw new Error('No user found')
+    }
+})
 
-export { authUser, getUserProfile, registerUser, updateUserProfile }
+// Let get a user by id 
+const getUserById = asyncHandler(async (req, res) => {
+    const user = await userModel.findById(req.params.id).select('-password')
+    if (user) {
+        res.json(user)
+    } else {
+        res.status(404)
+        throw new Error('No user found')
+    }
+})
+
+// Let update the users by id
+const updateUserById = asyncHandler(async (req, res) => {
+    const user = await userModel.findById(req.params.id)
+    if (user) {
+
+        user.name = req.body.name || user.name
+        user.email = req.body.email || user.email
+        user.isAdmin = req.body.isAdmin
+        const updatedUser = await user.save()
+
+        res.json({
+            _id: updatedUser._id,
+            name: updatedUser.name,
+            email: updatedUser.email,
+            isAdmin: updatedUser.isAdmin,
+        })
+    } else {
+        res.status(404)
+        throw new Error('User not found')
+    }
+})
+
+export {
+    authUser, getUserProfile, registerUser, updateUserProfile,
+    getAllUsers, deleteUser, getUserById, updateUserById
+}
+
